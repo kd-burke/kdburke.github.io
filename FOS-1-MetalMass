@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytical Balance</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #eefff0;
+            position: relative;
+            overflow: hidden; /* Prevents scrolling */
+        }
+        #dropdown-container {
+            display: flex;
+            font-weight: bold;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 10px;
+        }
+
+        #resetButton {
+            background-color: red;
+            border: 1px solid black;
+        }
+
+        #resetButton:hover {
+            background-color: darkred;
+        }
+
+        #shape-buttons {
+            display: flex;
+            margin-bottom: 40px;
+            gap: 10px;
+        }
+        .shape-button {
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .shape-button:hover {
+            background-color: #0056b3;
+        }
+        #balance-container {
+            margin-top: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #balance {
+            width: 200px;
+            height: 20px;
+            background-color: mediumblue;
+            position: relative;
+            margin-top: 20px;
+        }
+        #pan {
+            width: 150px;
+            height: 10px;
+            background-color: black;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .shape {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 1px solid black;
+        }
+
+        .sphere {
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffc87f 30%, #d68a40 90%);
+            box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.4), 5px 5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .cube {
+            width: 50px; /* Change width to make it a rectangle */
+            height: 30px; /* Keep height smaller */
+            background: linear-gradient(135deg, #ffc87f 40%, #d68a40 100%);
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .cylinder {
+            background: linear-gradient(180deg, #ffc87f 30%, #d68a40 100%);
+            border-radius: 10px;
+            box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.4), 5px 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        #readout-container {
+            width: 200px;
+            height: 50px;
+            background-color: darkblue;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        #readout {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div id="dropdown-container">
+    <label for="shapeSetSelector">Select Assigned Metal:</label>
+    <select id="shapeSetSelector">
+        <option value="" selected>Choose from Dropdown</option>
+        <option value="set1">Set 1</option>
+        <option value="set2">Set 2</option>
+        <option value="set3">Set 3</option>
+    </select>
+    <button id="resetButton" class="shape-button";>RESET</button>
+</div>
+<div id="shape-buttons" style="display: none;">
+    <button id="addSphere" class="shape-button">Add Ellipsoid</button>
+    <button id="addCube" class="shape-button">Add Cuboid</button>
+    <button id="addCylinder" class="shape-button">Add Cylinder</button>
+    <button id="removeShapes" class="shape-button" style="background-color: darkred;">Remove Shapes</button>
+</div>
+<div id="balance-container">
+    <div id="balance">
+        <div id="pan"></div>
+    </div>
+    <div id="readout-container">
+        <span id="readout">0.000 g</span>
+    </div>
+    <button id="tareButton" class="shape-button" style="background-color: orange; margin-top: 10px;">Tare</button>
+</div>
+<script>
+    const shapeSets = {
+        set1: { sphere: 4.899, cube: 21.202, cylinder: 50.138 },
+        set2: { sphere: 8.969, cube: 38.866, cylinder: 34.035 },
+        set3: { sphere: 2.251, cube: 11.740, cylinder: 6.108 }
+    };
+    const shapeColors = {
+        set1: { sphere: '#ffc87fff', cube: '#ffc87fff', cylinder: '#ffc87fff' },
+        set2: { sphere: '#e69b56ff', cube: '#e69b56ff', cylinder: '#e69b56ff' },
+        set3: { sphere: '#b7b7b7ff', cube: '#b7b7b7ff', cylinder: '#b7b7b7ff' }
+    };
+
+    const shapeGradients = {
+        set1: {
+            sphere: 'radial-gradient(circle, #ffc87fff, #cea064)',
+            cube: 'linear-gradient(45deg, #ffc87fff, #cea064)',
+            cylinder: 'linear-gradient(45deg, #ffc87fff, #cea064)'
+        },
+        set2: {
+
+            sphere: 'radial-gradient(circle, #e69b56ff, #c07d3f)',
+            cube: 'linear-gradient(45deg, #e69b56ff, #c07d3f)',
+            cylinder: 'linear-gradient(45deg, #e69b56ff, #c07d3f)'
+        },
+        set3: {
+            sphere: 'radial-gradient(circle, #b7b7b7ff, #9b9b9b)',
+            cube: 'linear-gradient(45deg, #b7b7b7ff, #9b9b9b)',
+            cylinder: 'linear-gradient(45deg, #b7b7b7ff, #9b9b9b)'
+        }
+    };
+
+    let currentSet = "";
+    let totalWeight = 0;
+    let tareOffset = 0;
+    let addedShapes = {};
+    function updateReadout() {
+        document.getElementById("readout").textContent = `${(totalWeight - tareOffset).toFixed(3)} g`;
+    }
+    function addShape(shape) {
+        if (!currentSet || addedShapes[shape]) return;
+
+        const shapeElement = document.createElement("div");
+        shapeElement.classList.add("shape", shape);
+        if (shape === "cube") {
+            shapeElement.style.width = "50px";  // Make it a rectangle
+            shapeElement.style.height = "30px";
+        } else {
+            shapeElement.style.width = "30px";
+            shapeElement.style.height = shape === "cylinder" ? "40px" : "30px";
+        }
+
+        shapeElement.style.background = shapeGradients[currentSet][shape];
+        shapeElement.style.border = "1px solid black"; // Add black border
+
+        if (shape === "sphere") {
+            shapeElement.style.borderRadius = "50%";
+        }
+
+        let pan = document.getElementById("pan");
+
+        // Get the pan's position
+        const panRect = pan.getBoundingClientRect();
+
+        // Position the shape on top of the balance pan
+        shapeElement.style.position = "absolute";
+        shapeElement.style.bottom = "10px"; // Adjust this value so the shape rests on the pan
+        shapeElement.style.left = "50%";
+        shapeElement.style.transform = "translateX(-50%)";
+
+        pan.appendChild(shapeElement); // Append to body so positioning works correctly
+        addedShapes[shape] = { element: shapeElement, mass: shapeSets[currentSet][shape] };
+        totalWeight += shapeSets[currentSet][shape];
+
+        updateReadout();
+    }
+
+    function removeShapes() {
+        for (let shape in addedShapes) {
+            totalWeight -= addedShapes[shape].mass;
+            addedShapes[shape].element.remove();
+        }
+        addedShapes = {};
+        updateReadout();
+    }
+    document.getElementById("tareButton").addEventListener("click", () => {
+        tareOffset = totalWeight;
+        updateReadout();
+    });
+    document.getElementById("resetButton").addEventListener("click", () => {
+        totalWeight = 0;
+        tareOffset = 0;
+        currentSet = "";
+        document.getElementById("shape-buttons").style.display = "none";
+        document.getElementById("shapeSetSelector").value = "";
+        removeShapes();
+        updateReadout();
+    });
+    document.getElementById("removeShapes").addEventListener("click", removeShapes);
+    document.getElementById("addSphere").addEventListener("click", () => addShape("sphere"));
+    document.getElementById("addCube").addEventListener("click", () => addShape("cube"));
+    document.getElementById("addCylinder").addEventListener("click", () => addShape("cylinder"));
+    document.getElementById("shape-buttons").style.display = currentSet ? "flex" : "none";
+    removeShapes();
+    document.getElementById("shapeSetSelector").addEventListener("change", (event) => {
+        currentSet = event.target.value;
+        document.getElementById("shape-buttons").style.display = currentSet ? "flex" : "none";
+
+        removeShapes(); // Remove previous shapes first
+
+        // Generate a random starting weight between 0.005 g and 0.100 g for every selection, including the blank screen
+        totalWeight = parseFloat((Math.random() * (0.1 - 0.005) + 0.005).toFixed(3));
+        tareOffset = 0; // Reset tare offset when changing sets
+
+        updateReadout();
+    });
+</script>
+</body>
+</html>
