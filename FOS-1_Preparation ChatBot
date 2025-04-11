@@ -1,0 +1,29 @@
+<div style="font-family: sans-serif; padding: 1em; border: 2px solid #ccc; border-radius: 10px; max-width: 600px;">
+  <p><strong>👋 Hey! I'm your lab partner.</strong></p>
+  <p>Quick check-in: <strong>What do you think density means?</strong></p>
+
+  <input type="text" id="studentInput" placeholder="Type your answer here..." style="width: 100%; padding: 0.5em; margin-top: 10px; margin-bottom: 10px;">
+
+  <button onclick="checkDensity()" style="padding: 0.5em 1em;">Submit</button>
+
+  <p id="labPartnerReply" style="margin-top: 20px; font-weight: bold;"></p>
+</div>
+
+<script>
+  function checkDensity() {
+    const input = document.getElementById("studentInput").value.toLowerCase();
+    const reply = document.getElementById("labPartnerReply");
+
+    if (input.includes("mass") && input.includes("volume")) {
+      reply.textContent = "✅ Yup! It's mass divided by volume. We used grams and milliliters in lab, so the units are g/mL.";
+    } else if (input.includes("weight")) {
+      reply.textContent = "Sorta close! It's actually mass, not weight — and we divide it by volume.";
+    } else if (input.includes("space") || input.includes("size")) {
+      reply.textContent = "You're on the right track — density is about how much mass fits into a certain space!";
+    } else if (input.trim().length < 3) {
+      reply.textContent = "Try typing a bit more — even just a guess is okay!";
+    } else {
+      reply.textContent = "Hmm, not quite — density is the amount of mass in a given volume. Like how packed something is!";
+    }
+  }
+</script>
